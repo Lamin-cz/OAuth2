@@ -1,4 +1,5 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\Clients;
 
 /**
@@ -6,25 +7,21 @@ namespace Drahak\OAuth2\Storage\Clients;
  * @package Drahak\OAuth2\Storage\Entity
  * @author Drahomír Hanák
  */
-interface IClient
-{
+interface IClient {
 
-	/**
-	 * Get client id
-	 * @return string|int
-	 */
-	public function getId();
+    /**
+     * Get client id
+     */
+    public function getId(): int|string;
 
-	/**
-	 * Get client secret code
-	 * @return string|int
-	 */
-	public function getSecret();
+    /**
+     * Get client secret code
+     */
+    public function getSecret(): string;
 
-	/**
-	 * Get client redirect URL
-	 * @return string
-	 */
-	public function getRedirectUrl();
+    /**
+     * Get client redirect URL
+     */
+    public function getRedirectUrl(): string;
 
 }

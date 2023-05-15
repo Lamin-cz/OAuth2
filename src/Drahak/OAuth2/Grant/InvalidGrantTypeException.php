@@ -1,4 +1,5 @@
 <?php
+
 namespace Drahak\OAuth2\Grant;
 
 /**
@@ -6,6 +7,5 @@ namespace Drahak\OAuth2\Grant;
  * @package Drahak\OAuth2\Grant
  * @author Drahomír Hanák
  */
-class InvalidGrantTypeException extends \Exception
-{
+class InvalidGrantTypeException extends \Exception {
 }

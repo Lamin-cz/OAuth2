@@ -1,4 +1,5 @@
 <?php
+
 namespace Drahak\OAuth2\Application;
 
 use Nette\Application\IPresenter;
@@ -8,22 +9,16 @@ use Nette\Application\IPresenter;
  * @package Drahak\OAuth2\Application
  * @author Drahomír Hanák
  */
-interface IOAuthPresenter extends IPresenter
-{
+interface IOAuthPresenter extends IPresenter {
 
-	/**
-	 * Issue an authorization code
-	 * @param string $responseType
-	 * @param string $redirectUrl
-	 * @param string|null $scope
-	 * @return void
-	 */
-	public function issueAuthorizationCode($responseType, $redirectUrl, $scope = NULL);
+    /**
+     * Issue an authorization code
+     */
+    public function issueAuthorizationCode(string $responseType, string $redirectUrl, ?string $scope = null): void;
 
-	/**
-	 * Issue an access token
-	 * @return void
-	 */
-	public function issueAccessToken();
+    /**
+     * Issue an access token
+     */
+    public function issueAccessToken(): void;
 
 }

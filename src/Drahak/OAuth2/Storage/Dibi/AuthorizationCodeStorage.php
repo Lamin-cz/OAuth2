@@ -1,120 +1,100 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\Dibi;
 
-use Drahak\OAuth2\InvalidScopeException;
+use Drahak\OAuth2\Exceptions\InvalidScopeException;
 use Drahak\OAuth2\Storage\AuthorizationCodes\AuthorizationCode;
 use Drahak\OAuth2\Storage\AuthorizationCodes\IAuthorizationCodeStorage;
 use Drahak\OAuth2\Storage\AuthorizationCodes\IAuthorizationCode;
-use Nette\Database\Context;
-use Nette\Database\SqlLiteral;
 use Nette\Database\Table\ActiveRow;
-use Nette\Object;
 
 /**
  * AuthorizationCode
  * @package Drahak\OAuth2\Storage\AuthorizationCodes
  * @author Martin Malek
  */
-class AuthorizationCodeStorage extends Object implements IAuthorizationCodeStorage
-{
+class AuthorizationCodeStorage implements IAuthorizationCodeStorage {
+    public function __construct(private readonly \DibiConnection $context) {
+        // todo Dibi
+    }
 
-	/** @var \DibiConnection */
-	private $context;
+    /**
+     * Get authorization code table
+     */
+    protected function getTable(): string {
+        return 'oauth_authorization_code';
+    }
 
-	public function __construct(\DibiConnection $context)
-	{
-		$this->context = $context;
-	}
+    /**
+     * Get scope table
+     */
+    protected function getScopeTable(): string {
+        return 'oauth_authorization_code_scope';
+    }
 
-	/**
-	 * Get authorization code table
-	 * @return \Nette\Database\Table\Selection
-	 */
-	protected function getTable()
-	{
-		return 'oauth_authorization_code';
-	}
+    /******************** IAuthorizationCodeStorage ********************/
 
-	/**
-	 * Get scope table
-	 * @return \Nette\Database\Table\Selection
-	 */
-	protected function getScopeTable()
-	{
-		return 'oauth_authorization_code_scope';
-	}
+    /**
+     * Store authorization code
+     * @throws InvalidScopeException
+     */
+    public function store(IAuthorizationCode $authorizationCode): void {
+        $this->context->insert($this->getTable(), [
+            'authorization_code' => $authorizationCode->getAccessToken(),
+            'client_id' => $authorizationCode->getClientId(),
+            'user_id' => $authorizationCode->getUserId(),
+            'expires_at' => $authorizationCode->getExpires(),
+        ])->execute();
 
-	/******************** IAuthorizationCodeStorage ********************/
+        $this->context->begin();
+        try {
+            foreach ($authorizationCode->getScope() as $scope) {
+                $this->context->insert($this->getScopeTable(), [
+                    'authorization_code' => $authorizationCode->getAccessToken(),
+                    'scope_name' => $scope,
+                ])->execute();
+            }
+        } catch (\PDOException $e) {
+            // MySQL's error 1452 - Cannot add or update a child row: a foreign key constraint fails
+            if (in_array(1452, $e->errorInfo)) {
+                throw new InvalidScopeException();
+            }
+            throw $e;
+        }
+        $this->context->commit();
+    }
 
-	/**
-	 * Store authorization code
-	 * @param IAuthorizationCode $authorizationCode
-	 * @throws InvalidScopeException
-	 */
-	public function store(IAuthorizationCode $authorizationCode)
-	{
-		$this->context->insert($this->getTable(), array(
-			'authorization_code' => $authorizationCode->getAuthorizationCode(),
-			'client_id' => $authorizationCode->getClientId(),
-			'user_id' => $authorizationCode->getUserId(),
-			'expires_at' => $authorizationCode->getExpires()
-		))->execute();
+    /**
+     * Remove authorization code
+     */
+    public function remove(string $authorizationCode): void {
+        $this->context->delete($this->getTable())->where('authorization_code = %s', $authorizationCode)->execute();
+    }
 
-		$this->context->begin();
-		try {
-			foreach ($authorizationCode->getScope() as $scope) {
-				$this->context->insert($this->getScopeTable(), array(
-					'authorization_code' => $authorizationCode->getAuthorizationCode(),
-					'scope_name' => $scope
-				))->execute();
-			}
-		} catch (\PDOException $e) {
-			// MySQL error 1452 - Cannot add or update a child row: a foreign key constraint fails
-			if (in_array(1452, $e->errorInfo)) {
-				throw new InvalidScopeException;
-			}
-			throw $e;
-		}
-		$this->context->commit();
-	}
+    /**
+     * Validate authorization code
+     */
+    public function getValidAuthorizationCode(string $authorizationCode): ?IAuthorizationCode {
+        /** @var ActiveRow $row */
+        $row = $this->context->select('*')->from($this->getTable())
+            ->where('authorization_code = %s', $authorizationCode)
+            ->where('TIMEDIFF(expires_at, NOW()) >= 0')
+            ->fetch();
 
-	/**
-	 * Remove authorization code
-	 * @param string $authorizationCode
-	 * @return void
-	 */
-	public function remove($authorizationCode)
-	{
-		$this->context->delete($this->getTable())->where('authorization_code = %s', $authorizationCode)->execute();
-	}
+        if (!$row) {
+            return null;
+        }
 
-	/**
-	 * Validate authorization code
-	 * @param string $authorizationCode
-	 * @return IAuthorizationCode
-	 */
-	public function getValidAuthorizationCode($authorizationCode)
-	{
-		/** @var ActiveRow $row */
-		$row = $this->context->select('*')->from($this->getTable())
-			->where('authorization_code = %s', $authorizationCode)
-			->where('TIMEDIFF(expires_at, NOW()) >= 0')
-			->fetch();
+        $scopes = $this->context->select('*')->from($this->getScopeTable())
+            ->where('authorization_code = %s', $authorizationCode)
+            ->fetchPairs('scope_name');
 
-		if (!$row) return NULL;
-
-		$scopes = $this->context->select('*')->from($this->getScopeTable())
-			->where('authorization_code = %s', $authorizationCode)
-			->fetchPairs('scope_name');
-
-		return new AuthorizationCode(
-			$row['authorization_code'],
-			new \DateTime($row['expires_at']),
-			$row['client_id'],
-			$row['user_id'],
-			array_keys($scopes)
-		);
-	}
-
-
+        return new AuthorizationCode(
+            $row['authorization_code'],
+            new \DateTime($row['expires_at']),
+            $row['client_id'],
+            $row['user_id'],
+            array_keys($scopes)
+        );
+    }
 }

@@ -1,42 +1,39 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\AuthorizationCodes;
+
+use DateTime;
 
 /**
  * IAuthorizationCode
  * @package Drahak\OAuth2\Storage\AuthorizationCodes
  * @author Drahomír Hanák
  */
-interface IAuthorizationCode
-{
+interface IAuthorizationCode {
 
-	/**
-	 * Get authorization code
-	 * @return string
-	 */
-	public function getAuthorizationCode();
+    /**
+     * Get authorization code
+     */
+    public function getAccessToken(): string;
 
-	/**
-	 * Set expire date
-	 * @return \DateTime
-	 */
-	public function getExpires();
+    /**
+     * Set expire date
+     */
+    public function getExpires(): DateTime;
 
-	/**
-	 * Get client ID
-	 * @return string|int
-	 */
-	public function getClientId();
+    /**
+     * Get client ID
+     */
+    public function getClientId(): int|string;
 
-	/**
-	 * Get user ID
-	 * @return string|int
-	 */
-	public function getUserId();
+    /**
+     * Get user ID
+     */
+    public function getUserId(): int|string;
 
-	/**
-	 * Get scope
-	 * @return array
-	 */
-	public function getScope();
+    /**
+     * Get scope
+     */
+    public function getScope(): array;
 
 }

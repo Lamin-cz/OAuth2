@@ -1,75 +1,45 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\RefreshTokens;
 
 use DateTime;
-use Nette\Object;
 
 /**
  * RefreshToken
  * @package Drahak\OAuth2\Storage\RefreshTokens
  * @author Drahomír Hanák
- *
- * @property-read string $refreshToken
- * @property-read DateTime $expires
- * @property-read string|int $clientId
  */
-class RefreshToken extends Object implements IRefreshToken
-{
+class RefreshToken implements IRefreshToken {
+    public function __construct(
+        private readonly string     $refreshToken,
+        private readonly DateTime   $expires,
+        private readonly int|string $clientId,
+        private readonly int|string $userId
+    ) {
+    }
 
-	/** @var string */
-	private $refreshToken;
+    /**
+     * Get refresh token
+     */
+    public function getRefreshToken(): string {
+        return $this->refreshToken;
+    }
 
-	/** @var \DateTime */
-	private $expires;
+    /**
+     * Get expire time
+     */
+    public function getExpires(): DateTime {
+        return $this->expires;
+    }
 
-	/** @var string|int */
-	private $clientId;
+    /**
+     * Get client id
+     */
+    public function getClientId(): int|string {
+        return $this->clientId;
+    }
 
-	/** @var string|int */
-	private $userId;
-
-	public function __construct($refreshToken, DateTime $expires, $clientId, $userId)
-	{
-		$this->refreshToken = $refreshToken;
-		$this->clientId = $clientId;
-		$this->expires = $expires;
-		$this->userId = $userId;
-	}
-
-	/**
-	 * Get refresh token
-	 * @return string
-	 */
-	public function getRefreshToken()
-	{
-		return $this->refreshToken;
-	}
-
-	/**
-	 * Get expire time
-	 * @return \DateTime
-	 */
-	public function getExpires()
-	{
-		return $this->expires;
-	}
-
-	/**
-	 * Get client id
-	 * @return string|int
-	 */
-	public function getClientId()
-	{
-		return $this->clientId;
-	}
-
-
-	/**
-	 * @return int|string
-	 */
-	public function getUserId()
-	{
-		return $this->userId;
-	}
-
+    public function getUserId(): int|string {
+        return $this->userId;
+    }
 }

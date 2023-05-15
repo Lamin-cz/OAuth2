@@ -1,9 +1,9 @@
 <?php
+
 namespace Drahak\OAuth2\Grant;
 
 use Drahak\OAuth2\Storage;
-use Drahak\OAuth2\Storage\AccessToken;
-use Drahak\OAuth2\Storage\RefreshTokenFacade;
+use Drahak\OAuth2\Storage\AccessTokens\IAccessToken;
 use Drahak\OAuth2\Storage\ITokenFacade;
 
 /**
@@ -11,65 +11,58 @@ use Drahak\OAuth2\Storage\ITokenFacade;
  * @package Drahak\OAuth2\Grant
  * @author Drahomír Hanák
  */
-class AuthorizationCode extends GrantType
-{
+class AuthorizationCode extends GrantType {
+    private array $scope = [];
+    private IAccessToken $entity;
 
-	/** @var array */
-	private $scope = array();
+    protected function getScope(): array {
+        return $this->scope;
+    }
 
-	/** @var Storage\AuthorizationCodes\AuthorizationCode */
-	private $entity;
+    /**
+     * Get authorization code identifier
+     */
+    public function getIdentifier(): string {
+        return self::AUTHORIZATION_CODE;
+    }
 
-	/**
-	 * @return array
-	 */
-	protected function getScope()
-	{
-		return $this->scope;
-	}
+    /**
+     * Verify request
+     */
+    protected function verifyRequest(): void {
+        $code = $this->input->getParameter('code');
 
-	/**
-	 * Get authorization code identifier
-	 * @return string
-	 */
-	public function getIdentifier()
-	{
-		return self::AUTHORIZATION_CODE;
-	}
+        $this->entity = $this->token->getToken(ITokenFacade::AUTHORIZATION_CODE)->getEntity($code);
+        $this->scope = $this->entity->getScope();
 
-	/**
-	 * Verify request
-	 * @throws Storage\InvalidAuthorizationCodeException
-	 */
-	protected function verifyRequest()
-	{
-		$code = $this->input->getParameter('code');
+        $this->token->getToken(ITokenFacade::AUTHORIZATION_CODE)->getAccessToken()->remove($code);
+    }
 
-		$this->entity = $this->token->getToken(ITokenFacade::AUTHORIZATION_CODE)->getEntity($code);
-		$this->scope = $this->entity->getScope();
+    /**
+     * Generate access token
+     */
+    protected function generateAccessToken(): array {
+        $client = $this->getClient();
+        $accessTokenStorage = $this->token->getToken(ITokenFacade::ACCESS_TOKEN);
+        $refreshTokenStorage = $this->token->getToken(ITokenFacade::REFRESH_TOKEN);
 
-		$this->token->getToken(ITokenFacade::AUTHORIZATION_CODE)->getStorage()->remove($code);
-	}
+        $accessToken = $accessTokenStorage->create(
+            $client,
+            $this->user->getId() ?: $this->entity->getUserId(),
+            $this->getScope()
+        );
+        $refreshToken = $refreshTokenStorage->create(
+            $client,
+            $this->user->getId() ?: $this->entity->getUserId(),
+            $this->getScope()
+        );
 
-	/**
-	 * Generate access token
-	 * @return string
-	 */
-	protected function generateAccessToken()
-	{
-		$client = $this->getClient();
-		$accessTokenStorage = $this->token->getToken(ITokenFacade::ACCESS_TOKEN);
-		$refreshTokenStorage = $this->token->getToken(ITokenFacade::REFRESH_TOKEN);
-
-		$accessToken = $accessTokenStorage->create($client, $this->user->getId() ?: $this->entity->getUserId(), $this->getScope());
-		$refreshToken = $refreshTokenStorage->create($client, $this->user->getId() ?: $this->entity->getUserId(), $this->getScope());
-
-		return array(
-			'access_token' => $accessToken->getAccessToken(),
-			'token_type' => 'bearer',
-			'expires_in' => $accessTokenStorage->getLifetime(),
-			'refresh_token' => $refreshToken->getRefreshToken()
-		);
-	}
+        return [
+            'access_token' => $accessToken->getAccessToken(),
+            'token_type' => 'bearer',
+            'expires_in' => $accessTokenStorage->getLifetime(),
+            'refresh_token' => $refreshToken->getRefreshToken(),
+        ];
+    }
 
 }

@@ -1,84 +1,41 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\AccessTokens;
 
 use DateTime;
-use Nette\Object;
 
 /**
  * Base AccessToken entity
  * @package Drahak\OAuth2\Storage\AccessTokens
  * @author Drahomír Hanák
- *
- * @property-read string $accessToken
- * @property-read DateTime $expires
- * @property-read string|int $clientId
- * @property-read array $scope
  */
-class AccessToken extends Object implements IAccessToken
-{
+class AccessToken implements IAccessToken {
+    public function __construct(
+        private readonly string     $accessToken,
+        private readonly DateTime   $expires,
+        private readonly int|string $clientId,
+        private readonly int|string $userId,
+        private readonly array      $scope
+    ) {
+    }
 
-	/** @var string */
-	private $accessToken;
+    public function getAccessToken(): string {
+        return $this->accessToken;
+    }
 
-	/** @var DateTime */
-	private $expires;
+    public function getClientId(): int|string {
+        return $this->clientId;
+    }
 
-	/** @var string|int */
-	private $clientId;
+    public function getUserId(): int|string {
+        return $this->userId;
+    }
 
-	/** @var string|int */
-	private $userId;
+    public function getExpires(): DateTime {
+        return $this->expires;
+    }
 
-	/** @var array */
-	private $scope;
-
-	public function __construct($accessToken, DateTime $expires, $clientId, $userId, array $scope)
-	{
-		$this->accessToken = $accessToken;
-		$this->expires = $expires;
-		$this->clientId = $clientId;
-		$this->userId = $userId;
-		$this->scope = $scope;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAccessToken()
-	{
-		return $this->accessToken;
-	}
-
-	/**
-	 * @return int|string
-	 */
-	public function getClientId()
-	{
-		return $this->clientId;
-	}
-
-	/**
-	 * @return int|string
-	 */
-	public function getUserId()
-	{
-		return $this->userId;
-	}
-
-	/**
-	 * @return \DateTime
-	 */
-	public function getExpires()
-	{
-		return $this->expires;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getScope()
-	{
-		return $this->scope;
-	}
-
+    public function getScope(): array {
+        return $this->scope;
+    }
 }

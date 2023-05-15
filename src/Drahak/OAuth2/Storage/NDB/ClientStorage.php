@@ -1,70 +1,63 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\NDB;
 
 use Drahak\OAuth2\Storage\Clients\IClientStorage;
 use Drahak\OAuth2\Storage\Clients\IClient;
 use Drahak\OAuth2\Storage\Clients\Client;
-use Nette\Database\Context;
-use Nette\Object;
+use Nette\Database\Explorer;
+use Nette\Database\Table\Selection;
 
 /**
  * Nette database client storage
  * @package Drahak\OAuth2\Storage\Clients
  * @author Drahomír Hanák
  */
-class ClientStorage extends Object implements IClientStorage
-{
+class ClientStorage implements IClientStorage {
 
-	/** @var Context */
-	private $context;
+    public function __construct(private readonly Explorer $context) {
+    }
 
-	public function __construct(Context $context)
-	{
-		$this->context = $context;
-	}
+    /**
+     * Get client table selection
+     */
+    protected function getTable(): Selection {
+        return $this->context->table('oauth_client');
+    }
 
-	/**
-	 * Get client table selection
-	 * @return \Nette\Database\Table\Selection
-	 */
-	protected function getTable()
-	{
-		return $this->context->table('oauth_client');
-	}
+    /**
+     * Find client by ID and/or secret key
+     */
+    public function getClient(int|string $clientId, string $clientSecret = null): ?IClient {
+        if (!$clientId) {
+            return null;
+        }
 
-	/**
-	 * Find client by ID and/or secret key
-	 * @param string $clientId
-	 * @param string|null $clientSecret
-	 * @return IClient
-	 */
-	public function getClient($clientId, $clientSecret = NULL)
-	{
-		if (!$clientId) return NULL;
+        $selection = $this->getTable()->where(['client_id' => $clientId]);
+        if ($clientSecret) {
+            $selection->where(['secret' => $clientSecret]);
+        }
+        $data = $selection->fetch();
+        if (!$data) {
+            return null;
+        }
+        return new Client($data['client_id'], $data['secret'], $data['redirect_url']);
+    }
 
-		$selection = $this->getTable()->where(array('client_id' => $clientId));
-		if ($clientSecret) {
-			$selection->where(array('secret' => $clientSecret));
-		}
-		$data = $selection->fetch();
-		if (!$data) return NULL;
-		return new Client($data['client_id'], $data['secret'], $data['redirect_url']);
-	}
-
-	/**
-	 * Can client use given grant type
-	 * @param string $clientId
-	 * @param string $grantType
-	 * @return bool
-	 */
-	public function canUseGrantType($clientId, $grantType)
-	{
-		$result = $this->getTable()->getConnection()->query('
-			SELECT g.name
-			FROM oauth_client_grant AS cg
-			RIGHT JOIN oauth_grant AS g ON cg.grant_id = cg.grant_id AND g.name = ?
-			WHERE cg.client_id = ?
-		', $grantType, $clientId);
-		return (bool)$result->fetch();
-	}
+    /**
+     * Can client use given grant type
+     */
+    public function canUseGrantType(string $clientId, string $grantType): bool {
+        $result = $this->context->getConnection()->query(
+            '
+            SELECT g.name
+            FROM oauth_client_grant AS cg
+            RIGHT JOIN oauth_grant AS g ON cg.grant_id = cg.grant_id AND g.name = ?
+            WHERE cg.client_id = ?
+        ',
+            $grantType,
+            $clientId
+        );
+        return (bool)$result->fetch();
+    }
 }

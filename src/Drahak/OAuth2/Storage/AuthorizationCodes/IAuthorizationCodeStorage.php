@@ -1,34 +1,30 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\AuthorizationCodes;
-use Drahak\OAuth2\InvalidScopeException;
+
+use Drahak\OAuth2\Exceptions\InvalidScopeException;
 
 /**
  * IAuthorizationCodeStorage
  * @package Drahak\OAuth2\Storage\AuthorizationCodes
  * @author Drahomír Hanák
  */
-interface IAuthorizationCodeStorage
-{
+interface IAuthorizationCodeStorage {
 
-	/**
-	 * Store authorization code
-	 * @param IAuthorizationCode $authorizationCode
-	 * @throws InvalidScopeException
-	 */
-	public function store(IAuthorizationCode $authorizationCode);
+    /**
+     * Store authorization code
+     * @throws InvalidScopeException
+     */
+    public function store(IAuthorizationCode $authorizationCode);
 
-	/**
-	 * Remove authorization code
-	 * @param string $authorizationCode
-	 * @return void
-	 */
-	public function remove($authorizationCode);
+    /**
+     * Remove authorization code
+     */
+    public function remove(string $authorizationCode): void;
 
-	/**
-	 * Get valid authorization code
-	 * @param string $authorizationCode
-	 * @return IAuthorizationCode|NULL
-	 */
-	public function getValidAuthorizationCode($authorizationCode);
+    /**
+     * Get valid authorization code
+     */
+    public function getValidAuthorizationCode(string $authorizationCode): ?IAuthorizationCode;
 
 }

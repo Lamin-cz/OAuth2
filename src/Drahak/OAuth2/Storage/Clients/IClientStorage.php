@@ -1,4 +1,5 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\Clients;
 
 /**
@@ -6,23 +7,16 @@ namespace Drahak\OAuth2\Storage\Clients;
  * @package Drahak\OAuth2\DataSource
  * @author Drahomír Hanák
  */
-interface IClientStorage
-{
+interface IClientStorage {
 
-	/**
-	 * Get client data
-	 * @param string|int $clientId
-	 * @param string $clientSecret
-	 * @return IClient
-	 */
-	public function getClient($clientId, $clientSecret = NULL);
+    /**
+     * Get client data
+     */
+    public function getClient(int|string $clientId, string $clientSecret = null): ?IClient;
 
-	/**
-	 * Can client use given grant type
-	 * @param string $clientId
-	 * @param string $grantType
-	 * @return bool
-	 */
-	public function canUseGrantType($clientId, $grantType);
+    /**
+     * Can client use given grant type
+     */
+    public function canUseGrantType(string $clientId, string $grantType): bool;
 
 }

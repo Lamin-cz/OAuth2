@@ -1,4 +1,5 @@
 <?php
+
 namespace Drahak\OAuth2\Application;
 
 use Nette\Application\IPresenter;
@@ -8,14 +9,11 @@ use Nette\Application\IPresenter;
  * @package Drahak\OAuth2\Application
  * @author Drahomír Hanák
  */
-interface IResourcePresenter extends IPresenter
-{
+interface IResourcePresenter extends IPresenter {
 
-	/**
-	 * Check if access token is valid
-	 * @param string $accessToken
-	 * @return void
-	 */
-	public function checkAccessToken($accessToken);
+    /**
+     * Check if access token is valid
+     */
+    public function checkAccessToken(string $accessToken): void;
 
 }

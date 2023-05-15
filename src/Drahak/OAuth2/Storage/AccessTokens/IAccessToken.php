@@ -1,42 +1,39 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\AccessTokens;
+
+use DateTime;
 
 /**
  * IAccessToken entity
  * @package Drahak\OAuth2\Storage\AccessTokens
  * @author Drahomír Hanák
  */
-interface IAccessToken
-{
+interface IAccessToken {
 
-	/**
-	 * Get access token
-	 * @return string
-	 */
-	public function getAccessToken();
+    /**
+     * Get access token
+     */
+    public function getAccessToken(): string;
 
-	/**
-	 * Get expires time
-	 * @return \DateTime
-	 */
-	public function getExpires();
+    /**
+     * Get expires time
+     */
+    public function getExpires(): DateTime;
 
-	/**
-	 * Get client ID
-	 * @return string|int
-	 */
-	public function getClientId();
+    /**
+     * Get client ID
+     */
+    public function getClientId(): int|string;
 
-	/**
-	 * Get access token user ID
-	 * @return string|int
-	 */
-	public function getUserId();
+    /**
+     * Get access token user ID
+     */
+    public function getUserId(): int|string;
 
-	/**
-	 * Get scope
-	 * @return array
-	 */
-	public function getScope();
+    /**
+     * Get scope
+     */
+    public function getScope(): array;
 
 }

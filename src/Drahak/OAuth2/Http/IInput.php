@@ -1,4 +1,5 @@
 <?php
+
 namespace Drahak\OAuth2\Http;
 
 /**
@@ -6,26 +7,21 @@ namespace Drahak\OAuth2\Http;
  * @package Drahak\OAuth2\Http
  * @author Drahomír Hanák
  */
-interface IInput
-{
+interface IInput {
 
-	/**
-	 * Get all parameters
-	 * @return array
-	 */
-	public function getParameters();
+    /**
+     * Get all parameters
+     */
+    public function getParameters(): array;
 
-	/**
-	 * Get single parameter value by name
-	 * @param string $name
-	 * @return string|int
-	 */
-	public function getParameter($name);
+    /**
+     * Get single parameter value by name
+     */
+    public function getParameter(string $name): string|int|null;
 
-	/**
-	 * Get authorization token
-	 * @return string
-	 */
-	public function getAuthorization();
+    /**
+     * Get authorization token
+     */
+    public function getAuthorization(): ?string;
 
 }

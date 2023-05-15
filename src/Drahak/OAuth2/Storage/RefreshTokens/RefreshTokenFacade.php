@@ -1,11 +1,13 @@
 <?php
+
 namespace Drahak\OAuth2\Storage\RefreshTokens;
 
+use DateTime;
 use Drahak\OAuth2\IKeyGenerator;
+use Drahak\OAuth2\Storage\AccessTokens\IAccessToken;
 use Drahak\OAuth2\Storage\ITokenFacade;
-use Drahak\OAuth2\Storage\InvalidRefreshTokenException;
+use Drahak\OAuth2\Storage\Exceptions\InvalidRefreshTokenException;
 use Drahak\OAuth2\Storage\Clients\IClient;
-use Nette\Object;
 
 /**
  * RefreshToken
@@ -15,92 +17,66 @@ use Nette\Object;
  * @property-read int $lifetime
  * @property-read IRefreshTokenStorage $storage
  */
-class RefreshTokenFacade extends Object implements ITokenFacade
-{
+class RefreshTokenFacade implements ITokenFacade {
+    public function __construct(
+        private readonly int $lifetime,
+        private readonly IKeyGenerator $keyGenerator,
+        private readonly IRefreshTokenStorage $storage
+    ) {
+    }
 
-	/** @var IRefreshTokenStorage */
-	private $storage;
+    /**
+     * Create new refresh token
+     */
+    public function create(IClient $client, int|string $userId, array $scope = []): RefreshToken {
+        $expires = new DateTime();
+        $expires->modify('+' . $this->lifetime . ' seconds');
+        $refreshToken = new RefreshToken(
+            $this->keyGenerator->generate(),
+            $expires,
+            $client->getId(),
+            $userId
+        );
+        $this->storage->store($refreshToken);
 
-	/** @var IKeyGenerator */
-	private $keyGenerator;
+        return $refreshToken;
+    }
 
-	/** @var int */
-	private $lifetime;
+    /**
+     * Get refresh token entity
+     *
+     * @throws InvalidRefreshTokenException
+     */
+    public function getEntity(string $token): IRefreshToken {
+        $entity = $this->storage->getValidRefreshToken($token);
+        if (!$entity) {
+            $this->storage->remove($token);
+            throw new InvalidRefreshTokenException();
+        }
+        return $entity;
+    }
 
-	public function __construct($lifetime, IKeyGenerator $keyGenerator, IRefreshTokenStorage $storage)
-	{
-		$this->lifetime = $lifetime;
-		$this->storage = $storage;
-		$this->keyGenerator = $keyGenerator;
-	}
-
-	/**
-	 * Create new refresh token
-	 * @param IClient $client
-	 * @param int $userId
-	 * @param array $scope
-	 * @return RefreshToken
-	 */
-	public function create(IClient $client, $userId, array $scope = array())
-	{
-		$expires = new \DateTime;
-		$expires->modify('+' . $this->lifetime . ' seconds');
-		$refreshToken = new RefreshToken(
-			$this->keyGenerator->generate(),
-			$expires,
-			$client->getId(),
-			$userId
-		);
-		$this->storage->store($refreshToken);
-
-		return $refreshToken;
-	}
-
-	/**
-	 * Get refresh token entity
-	 * @param string $refreshToken
-	 * @return IRefreshToken|NULL
-	 *
-	 * @throws InvalidRefreshTokenException
-	 */
-	public function getEntity($refreshToken)
-	{
-		$entity = $this->storage->getValidRefreshToken($refreshToken);
-		if (!$entity) {
-			$this->storage->remove($refreshToken);
-			throw new InvalidRefreshTokenException;
-		}
-		return $entity;
-	}
-
-	/**
-	 * Get token identifier name
-	 * @return string
-	 */
-	public function getIdentifier()
-	{
-		return self::REFRESH_TOKEN;
-	}
+    /**
+     * Get token identifier name
+     */
+    public function getIdentifier(): string {
+        return self::REFRESH_TOKEN;
+    }
 
 
-	/****************** Getters & setters ******************/
+    /****************** Getters & setters ******************/
 
-	/**
-	 * Get token lifetime
-	 * @return int
-	 */
-	public function getLifetime()
-	{
-		return $this->lifetime;
-	}
+    /**
+     * Get token lifetime
+     */
+    public function getLifetime(): int {
+        return $this->lifetime;
+    }
 
-	/**
-	 * Get storage
-	 * @return IRefreshTokenStorage
-	 */
-	public function getStorage()
-	{
-		return $this->storage;
-	}
-
+    /**
+     * Get storage
+     */
+    public function getStorage(): IRefreshTokenStorage {
+        return $this->storage;
+    }
 }

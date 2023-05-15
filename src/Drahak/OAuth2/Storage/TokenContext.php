@@ -1,43 +1,34 @@
 <?php
+
 namespace Drahak\OAuth2\Storage;
 
-use Drahak\OAuth2\InvalidStateException;
-use Nette\Object;
+use Drahak\OAuth2\Exceptions\InvalidStateException;
 
 /**
  * TokenContext
  * @package Drahak\OAuth2\Token
  * @author Drahomír Hanák
  */
-class TokenContext extends Object
-{
+class TokenContext {
+    private array $tokens = [];
 
-	/** @var array */
-	private $tokens = array();
+    /**
+     * Add identifier to collection
+     */
+    public function addToken(ITokenFacade $token): void {
+        $this->tokens[$token->getIdentifier()] = $token;
+    }
 
-	/**
-	 * Add identifier to collection
-	 * @param ITokenFacade $token
-	 */
-	public function addToken(ITokenFacade $token)
-	{
-		$this->tokens[$token->getIdentifier()] = $token;
-	}
+    /**
+     * Get token
+     *
+     * @throws InvalidStateException
+     */
+    public function getToken(string $identifier): ITokenFacade {
+        if (!isset($this->tokens[$identifier])) {
+            throw new InvalidStateException('Token called "' . $identifier . '" not found in Token context');
+        }
 
-	/**
-	 * Get token
-	 * @param string $identifier
-	 * @return ITokenFacade
-	 *
-	 * @throws InvalidStateException
-	 */
-	public function getToken($identifier)
-	{
-		if 	(!isset($this->tokens[$identifier])) {
-			throw new InvalidStateException('Token called "' . $identifier . '" not found in Token context');
-		}
-
-		return $this->tokens[$identifier];
-	}
-
+        return $this->tokens[$identifier];
+    }
 }

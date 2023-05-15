@@ -9,16 +9,22 @@
 		{
 			"name": "Drahomír Hanák",
 			"homepage": "http://www.drahak.eu"
+		},
+		{
+			"name": "Roman Pospíšilík",
+			"homepage": "https://www.pospisilik.eu"
 		}
 	],
 	"config": {
 		"vendor-dir": "libs"
 	},
 	"require": {
-		"php": ">= 5.3.0",
+		"php": ">= 8.1.0",
 
-		"nette/nette": "@dev"
-	},
+		"nette/nette": "@dev",
+      "ext-pdo": "*",
+      "ext-openssl": "*"
+    },
 	"require-dev": {
 		"nette/tester": "dev-master",
 		"janmarek/mockista": "dev-master"
@@ -26,11 +32,6 @@
 	"autoload": {
 		"psr-0": {
 			"Drahak\\OAuth2": "src/"
-		},
-		"classmap": [
-			"src/Drahak/OAuth2/exceptions.php",
-			"src/Drahak/OAuth2/Grant/exceptions.php",
-			"src/Drahak/OAuth2/Storage/exceptions.php"
-		]
+		}
 	}
 }

@@ -1,9 +1,9 @@
 {
-	"name": "drahak/oauth2",
+	"name": "lamin-cz/oauth2",
 	"type": "library",
 	"description": "Nette OAuth2 Provider bundle",
 	"keywords": ["nette", "OAuth2", "provider", "server", "drahak"],
-	"homepage": "http://www.drahak.eu",
+	"homepage": "https://www.lamin.cz",
 	"license": ["BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
 	"authors": [
 		{
@@ -12,7 +12,7 @@
 		},
 		{
 			"name": "Roman Pospíšilík",
-			"homepage": "https://www.pospisilik.eu"
+			"homepage": "https://www.lamin.cz"
 		}
 	],
 	"config": {
@@ -31,7 +31,7 @@
 	},
 	"autoload": {
 		"psr-0": {
-			"Drahak\\OAuth2": "src/"
+			"Lamin-cz\\OAuth2": "src/"
 		}
 	}
 }
